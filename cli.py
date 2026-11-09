@@ -23,7 +23,7 @@ import sys
 
 import numpy as np
 
-from . import band, berry, box, chi, hr, kappa, line, nlhall, nodes, pprime, scan, simphony, spectral, tau
+from . import band, berry, box, chi, fc34, hr, kappa, line, nlhall, nodes, pprime, scan, simphony, spectral, tau
 from .core import parse_bands
 
 
