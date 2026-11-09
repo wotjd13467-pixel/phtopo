@@ -23,7 +23,7 @@ import sys
 
 import numpy as np
 
-from . import band, berry, box, chi, fc34, hr, kappa, line, nlhall, nodes, pprime, scan, simphony, spectral, tau
+from . import band, berry, box, chi, fc2, fc34, hr, kappa, line, nlhall, nodes, pprime, scan, simphony, spectral, tau
 from .core import parse_bands
 
 
@@ -60,6 +60,7 @@ MENU = [
         (nlhall, "pt nlhall --nq 100 --ibz", "비선형 포논 홀 응답 P_ab(T)"),
         (spectral, "pt spectral --nq 60 --ibz", "P_ab 주파수 분해 P(ν)"),
         (fc34, "pt 3rd --model mace", "3차 힘상수 (FC3) — phono3py + MLIP (τ/κ/NPHE 입력)"),
+        (fc2, "pt 2nd --model mace", "2차 힘상수 (FC2) — phonopy + MLIP (조화 포논 분산 입력)"),
         (tau, "pt tau --fc3 fc3.hdf5 --isotope", "phono3py 포논 수명 τ(ω,T)"),
         (pprime, "pt pprime --tau-file tau_parent.npz", "모드별 수명을 넣은 P′ = Σ τ_nk P_nk"),
         (kappa, "pt kappa --P nphe.npz --tau 5", "열홀 κ_H·ΔT⊥ (기본 NPHE, --linear 면 자기장 κ_xy)"),

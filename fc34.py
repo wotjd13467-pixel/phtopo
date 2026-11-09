@@ -31,6 +31,8 @@ import time
 
 import numpy as np
 
+from ._mlip import ase_of as _ase_of, load_calc as _load_calc, to_phonopy_atoms as _to_phonopy_atoms
+
 NAME = "3rd"
 HELP = "3차 힘상수 (FC3) — phono3py + MLIP (수명·열전도도·NPHE 입력)"
 
@@ -64,53 +66,6 @@ def add_args(sp):
 
 
 # -------- helpers --------
-
-def _load_calc(model, device):
-    """MLIP 계산기 로드. 패키지 없으면 친절한 에러."""
-    if model == "mace":
-        try:
-            from mace.calculators import mace_mp
-        except ImportError as e:
-            print(f"[3rd] mace 패키지 없음: pip install mace-torch  ({e})", file=sys.stderr)
-            sys.exit(2)
-        return mace_mp(model="medium", device=device, default_dtype="float64")
-    if model == "orb":
-        try:
-            from orb_models.forcefield import pretrained
-            from orb_models.forcefield.calculator import ORBCalculator
-        except ImportError as e:
-            print(f"[3rd] orb-models 패키지 없음: pip install orb-models  ({e})", file=sys.stderr)
-            sys.exit(2)
-        ff = pretrained.orb_v3_conservative_inf_omat(device=device, precision="float32-high")
-        return ORBCalculator(ff, device=device)
-    if model == "sevennet":
-        try:
-            from sevenn.calculator import SevenNetCalculator
-        except ImportError as e:
-            print(f"[3rd] sevenn 패키지 없음: pip install sevenn  ({e})", file=sys.stderr)
-            sys.exit(2)
-        return SevenNetCalculator("7net-0", device=device)
-    raise ValueError(f"unknown model {model!r}")
-
-
-def _to_phonopy_atoms(ase_atoms):
-    from phonopy.structure.atoms import PhonopyAtoms
-    return PhonopyAtoms(
-        symbols=ase_atoms.get_chemical_symbols(),
-        cell=ase_atoms.get_cell(),
-        scaled_positions=ase_atoms.get_scaled_positions(),
-    )
-
-
-def _ase_of(phonopy_sc):
-    from ase import Atoms
-    return Atoms(
-        symbols=phonopy_sc.symbols,
-        cell=phonopy_sc.cell,
-        scaled_positions=phonopy_sc.scaled_positions,
-        pbc=True,
-    )
-
 
 def _supercell_matrix(a):
     sc = a.sc_fc3 if a.sc_fc3 else a.dim
