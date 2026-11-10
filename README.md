@@ -185,7 +185,35 @@ pt 3rd -c POSCAR_relaxed --d 2 2 2 --model mace    # → fc3.hdf5 (third order, 
 | `--band 36: 이 구조의 밴드쌍은 1..35` | band out of range |
 | `--path: 이 구조에는 점 'M' 이 없음. 쓸 수 있는 이름: …` | use one of the listed point names |
 
-## 5. Other commands (short)
+## 5. Known problems and how to handle them
+
+These happened in real runs. Match the symptom, then do exactly the "do this" column.
+
+| symptom | likely cause | do this |
+|---|---|---|
+| several nodes within ~0.001 of each other, χ like −0.000 / +1 / −1 mixed, `r=0.0001` in the log | one degenerate point found several times, or nodal lines meeting | treat the cluster as ONE point. Run `pt box --node <row>` on it and report the box χ. Do not report each row as a separate Weyl point |
+| a node with χ ≈ 0 (e.g. `-0.000`) on a line where two symmetry planes meet (two coordinates equal to 0 or 0.5) | symmetry-enforced crossing on a high-symmetry axis, not a Weyl point | report it as "χ=0 crossing on axis", not as Weyl |
+| χ not close to an integer (e.g. −0.4, +0.7) | sphere too big (catches neighbours) or too small | step 4: `pt chi --radius 0.001`, then `pt box` |
+| band pairs 1/2, 2/3, 3/4 (acoustic): slow, `불일치` (e.g. flux +2, found 0), or `검사 불가` | acoustic gaps are tiny; candidates slide into nodal lines | report "acoustic pair not verified". Do not rerun with ever-larger meshes |
+| `불일치` remains after the run for a non-acoustic pair | node missed by the grid | rerun ONLY that pair once: `--band N --mesh 48 --mesh-max 96 -o nodes_N.txt`. If still `불일치`, report it as unresolved and stop |
+| `검사 불가` | a nodal line or degenerate plane touches the check box | normal for some pairs; report "not verified" |
+| `강제 축퇴 k3=0.5` | symmetry forces the whole plane k3=½ degenerate (screw axis) | not an error, not a node. Mention it as a nodal surface |
+| many rows in `nodes_lines.txt` for one pair | it has nodal lines | expected for mirror/glide planes; report planes and q ranges |
+| `[경고] 허수 진동수` in `pt band` | unstable structure, wrong supercell, or bad force constants | stop. Do not search for nodes. Report |
+| `[경고] BORN 없음 → NAC 끔` | no BORN file | continue, but write in the report "LO-TO not included". Never create or guess a BORN file |
+| the run was interrupted | — | the output file keeps the finished band pairs. Check its `band` column, then run the missing pairs with a NEW `-o` name (running with the same `-o` overwrites the file) |
+| total χ of all nodes ≠ 0 | only symmetry representatives are listed; orbit copies are missing from the sum | not a discovery. The full-zone total is always 0 |
+| MLIP route (`pt 2nd`) gives imaginary frequencies | MLIP error or structure not relaxed with the same model | run `pt relax` with the SAME `--model` first; if still imaginary, report that the MLIP is not reliable for this material |
+
+**Do NOT:**
+- edit any file in the data folder or any `.py` file of phtopo;
+- invent options. Use only options shown by `pt <command> -h`;
+- increase `--mesh` above 96 or rerun the same full scan again and again;
+- run two scans that write the same `-o` file at the same time;
+- report results from a run that printed an error or a traceback;
+- convert the coordinates yourself; report q1 q2 q3 exactly as written (they are in this POSCAR's reciprocal-lattice units).
+
+## 6. Other commands (short)
 
 `pt hr` (tight-binding Hamiltonian, needs BORN) · `pt nodes --band N` (nodes on one plane only, fast) ·
 `pt simphony --band N` (inputs for the Simphony code) · phonon Hall: `pt nlhall`, `pt spectral`, `pt tau`, `pt pprime`, `pt kappa`.

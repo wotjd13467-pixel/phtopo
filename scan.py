@@ -85,7 +85,7 @@ class Model:
 
     def rep(self, q):
         pts, sg = self.orbit(q)
-        i = max(range(len(pts)), key=lambda k: tuple(np.round(pts[k], 9)))
+        i = max(range(len(pts)), key=lambda k: tuple(np.round(pts[k], 6) + 0.0))  # 6자리: 1e-9 잔차가 ±0 순서를 뒤집지 않게
         return pts[i]
 
     def forced_planes(self, bands, n=20, seed=0):
@@ -217,14 +217,21 @@ def search_iter(m, bands, n, a, log=print):
             x, g = m.refine(x0, b, h) if plane is None else m.refine_in(x0, b, h, *plane)
             if g > TOL or any(abs(fold(x[ax] - c)) < 1e-3 for ax, c in forced[b]):
                 return
+            # 대칭면 1e-3 안이면 면 위로 옮겨 다시 좁힘 — 덜 수렴한 사본이 따로 노드로 남는 것 방지
+            # (example 6/7: Γ–Z 축 점 둘레 0.0005 안에 사본 4개, χ 엉망). ponytail: 면에서 1e-3 안의 진짜 면 밖 노드도 면으로 붙음
+            for ax, c in m.planes:
+                if 0 < abs(fold(x[ax] - c)) < 1e-3:
+                    y, gy = m.refine_in(x, b, 1e-4, ax, c)
+                    if gy <= TOL:
+                        x = y
             x = m.rep(fold(x))
             if np.abs(x).max() < 1e-3:  # Γ: 음향이 붙는 점 (χ=0). NAC 도 방향 의존이라 노드가 아님
                 return
-            if any(np.abs(fold(x - y)).max() < 1e-4 for y in reps):
+            if any(np.abs(fold(x - p)).max() < 1e-4 for y in reps for p in m.orbit(y)[0]):  # 궤도 사본까지 비교
                 return
             if not m.is_point(x, b):
                 lines += 1
-                if all(np.abs(fold(x - y)).max() > 1e-3 for y in linepts):
+                if all(np.abs(fold(x - p)).max() > 1e-3 for y in linepts for p in m.orbit(y)[0]):
                     linepts.append(x)
                 return
             reps.append(x)

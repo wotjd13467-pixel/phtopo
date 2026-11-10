@@ -50,7 +50,7 @@ def find(ph, band, axis, m, n=90):
     Kinv = np.linalg.inv(rec)  # Cartesian -> 분수
 
     def inplane_rep(q):  # 궤도 중 이 면 위에 있는 짝의 대표
-        return max((p for p in m.orbit(q)[0] if abs(p[ax]) < 1e-9), key=lambda p: tuple(np.round(p, 9)))
+        return max((p for p in m.orbit(q)[0] if abs(p[ax]) < 1e-9), key=lambda p: tuple(np.round(p, 6) + 0.0))
 
     print(f"밴드 {band}/{band + 1}, 면 q{axis}=0, 갭 격자 {n}x{n} ...", flush=True)
     f = (np.arange(n) + 0.5) / n - 0.5  # 반칸 이동 — Γ·대칭 면을 안 밟음
@@ -69,7 +69,7 @@ def find(ph, band, axis, m, n=90):
         x = inplane_rep(fold(x))
         if np.abs(x).max() < 1e-3:  # Γ: 음향이 붙는 점, 노드 아님
             continue
-        if any(np.abs(fold(x - y)).max() < 1e-4 for y in found) or not m.is_point(x, band):
+        if any(np.abs(fold(x - p)).max() < 1e-4 for y in found for p in m.orbit(y)[0]) or not m.is_point(x, band):
             continue
         found.append(x)
 
