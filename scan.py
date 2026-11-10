@@ -17,6 +17,7 @@
 출력: nodes.txt (q1 q2 q3 f chi band) — 궤도 대표만. chi / box / berry / simphony 가 그대로 읽는다.
 원본 생각: C:\\Users\\techw\\Desktop\\cjs\\4_Archives\\KPS\\scripts\\core\\full_node_census.py (균일 격자는 노드를 놓친다 → 검사 필요)
 """
+import os
 import time
 
 import numpy as np
@@ -173,13 +174,14 @@ def ir_grid(ph, n):
 def search(m, bands, n, a, log=print):
     """균일 격자 n³ → ({band: [대표 q]}, {band: 강제 축퇴 면})."""
     found, forced = {}, {}
-    for b, reps, fp in search_iter(m, bands, n, a, log):
+    for b, reps, fp, _ in search_iter(m, bands, n, a, log):
         found[b], forced[b] = reps, fp
     return found, forced
 
 
 def search_iter(m, bands, n, a, log=print):
-    """밴드 하나 끝날 때마다 (band, [대표 q], 강제 축퇴 면) — 전체 밴드는 몇 시간이라 중간 저장용."""
+    """밴드 하나 끝날 때마다 (band, [대표 q], 강제 축퇴 면, [선 위 점 대표 q]) — 전체 밴드는 몇 시간이라 중간 저장용.
+    선 위 점 = 갭은 닫혔는데 점 판정에서 떨어진 것 (nodal line·면 위의 표본 점, 곡선 전체가 아님)."""
     n += n % 2
     q, uniq, inv, idx = ir_grid(m.ph, n)
     t0 = time.time()
@@ -208,7 +210,7 @@ def search_iter(m, bands, n, a, log=print):
         cand = sorted((g, i) for g, i in zip(gfull[loc], idx[loc]) if isrep[i]
                       and all(abs(fold(q[i][ax] - c)) > 1.5 / n for ax, c in forced[b]))
         cand = [i for _, i in cand[: a.ncand]]
-        reps, lines = [], 0
+        reps, lines, linepts = [], 0, []
 
         def take(x0, h, plane=None):
             nonlocal lines
@@ -222,6 +224,8 @@ def search_iter(m, bands, n, a, log=print):
                 return
             if not m.is_point(x, b):
                 lines += 1
+                if all(np.abs(fold(x - y)).max() > 1e-3 for y in linepts):
+                    linepts.append(x)
                 return
             reps.append(x)
 
@@ -255,7 +259,7 @@ def search_iter(m, bands, n, a, log=print):
             k += 1
         fp = " ".join(f"k{ax + 1}={c}" for ax, c in forced[b])
         log(f"  {b}/{b + 1}: 후보 {len(cand)} → 점 노드 {len(reps)} (선/면 {lines} 버림{', 강제 축퇴 ' + fp if fp else ''})")
-        yield b, reps, forced[b]
+        yield b, reps, forced[b], linepts
 
 
 def verify_box(m, forced, eps=0.01):
@@ -274,7 +278,11 @@ def run(a):
     ph = load(a)
     m = Model(ph)
     bands = all_bands(a, ph)
-    n, todo, rows, bad = a.mesh, list(bands), [], {}
+    n, todo, rows, lrows, bad = a.mesh, list(bands), [], [], {}
+    lout = os.path.splitext(a.out)[0] + "_lines.txt"
+
+    def plane_of(x):  # 그 점이 놓인 대칭 불변면 (거울·글라이드면 k_a=0,½ 이면 nodal line 이 흔함)
+        return ",".join(f"k{ax + 1}={c:g}" for ax, c in m.planes if abs(fold(x[ax] - c)) < 1e-4) or "-"
 
     def save():
         with open(a.out, "w", encoding="utf-8", newline="\n") as fh:
@@ -283,10 +291,17 @@ def run(a):
             fh.write("#       q1          q2          q3     f(THz)     chi  band\n")
             for r in sorted(rows, key=lambda r: (r[5], -r[0], -r[1])):
                 fh.write("%12.6f%12.6f%12.6f%10.4f%8.3f%6d\n" % r)
+        with open(lout, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write("# pt scan: nodal line/면 위 표본 점 — 갭 < 1e-5 THz 인데 고립점이 아님 (작은 구가 선·면에 뚫림).\n"
+                     "# 궤도 대표만, 같은 선 위 여러 점 = 그 선의 표본 (곡선 전체 아님). plane = 놓인 대칭면 (- 면 일반 위치)\n"
+                     f"{frame(ph)}#       q1          q2          q3     f(THz)  band  plane\n")
+            for r in sorted(lrows, key=lambda r: (r[4], r[5], -r[0], -r[1])):
+                fh.write("%12.6f%12.6f%12.6f%10.4f%6d  %s\n" % r)
 
     while todo:
         retry = []
-        for b, reps, fp in search_iter(m, todo, n, a):
+        for b, reps, fp, linepts in search_iter(m, todo, n, a):
+            lrows = [r for r in lrows if r[4] != b] + [(*x, m.freqs(x)[b - 1], b, plane_of(x)) for x in linepts]
             allpts = [p for x in reps for p in m.orbit(x)[0]]
             chis = []
             for x in reps:
@@ -317,6 +332,6 @@ def run(a):
         if todo:
             n *= 2
             print(f"불일치 밴드 {todo} → 격자 {n}^3 로 다시", flush=True)
-    print(f"-> {a.out}  (노드 {len(rows)} 개, 궤도 대표)")
+    print(f"-> {a.out}  (노드 {len(rows)} 개, 궤도 대표), {lout}  (nodal line·면 표본 점 {len(lrows)} 개)")
     for b, msg in sorted(bad.items()):
         print(f"   ⚠ {b}/{b + 1}: {msg}")
