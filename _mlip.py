@@ -5,15 +5,21 @@
 import sys
 
 
-def load_calc(model, device):
-    """MLIP 계산기 로드. 패키지 없으면 친절한 에러로 exit(2)."""
+def load_calc(model, device, dtype=None):
+    """MLIP 계산기 로드. 패키지 없으면 친절한 에러로 exit(2).
+
+    dtype: None (기본) → MACE float64, 환경변수 MLIP_DTYPE 로 덮어쓰기 가능 (float32/float64).
+    """
+    import os
+    if dtype is None:
+        dtype = os.environ.get("MLIP_DTYPE", "float64")
     if model == "mace":
         try:
             from mace.calculators import mace_mp
         except ImportError as e:
             print(f"[mlip] mace 패키지 없음: pip install mace-torch  ({e})", file=sys.stderr)
             sys.exit(2)
-        return mace_mp(model="medium", device=device, default_dtype="float64")
+        return mace_mp(model="medium", device=device, default_dtype=dtype)
     if model == "orb":
         try:
             from orb_models.forcefield import pretrained

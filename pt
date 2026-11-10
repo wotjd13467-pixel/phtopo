@@ -1,0 +1,6 @@
+#!/bin/bash
+# pt — phonopy 방식 기반 도구 (phtopo)
+# 장소 이동 시 경로 하드코딩 제거
+PHHOME=$(cd "$(dirname "${BASH_SOURCE[0]}")/../phtopo" 2>/dev/null && pwd)
+export PYTHONPATH="${PHHOME}${PYTHONPATH:+:$PYTHONPATH}"
+exec "$(command -v python3)" -m phtopo "$@"

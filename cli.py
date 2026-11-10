@@ -23,7 +23,7 @@ import sys
 
 import numpy as np
 
-from . import band, berry, box, chi, fc2, fc34, hr, kappa, line, nlhall, nodes, pprime, scan, simphony, spectral, tau
+from . import band, berry, box, chi, fc2, fc34, hr, kappa, line, nlhall, nodes, pprime, relax, scan, simphony, spectral, tau
 from .core import parse_bands
 
 
@@ -46,6 +46,7 @@ def band_arg(s):
 # pt / pt -h 첫 화면: 분야별 번호 목록 → 번호 Enter 로 그 명령 자세히 (vaspkit 식)
 MENU = [
     ("포논 위상 (분산·Weyl 노드·χ·Berry)", [
+        (relax, "pt relax --model mace", "구조 완화 (lattice+ions) — MLIP, phonon 전 pre-relax"),
         (band, "pt band", "포논 분산 (k 경로 자동 또는 --path) → band.dat, band.png"),
         (hr, "pt hr", "phonopy 힘상수 → 단거리 TB 해밀토니안 (Simphony·WannierTools 입력)"),
         (scan, "pt scan --verify", "BZ 전체에서 Weyl 노드 찾기 (대칭으로 줄인 격자 → 좁히기 → χ)"),
