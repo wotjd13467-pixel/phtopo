@@ -23,7 +23,7 @@ import sys
 
 import numpy as np
 
-from . import band, berry, box, chi, fc2, fc34, hr, kappa, line, nlhall, nodes, pprime, relax, scan, simphony, spectral, tau
+from . import band, berry, box, chi, fc2, fc34, hr, kappa, line, nlhall, nodes, plot, pprime, relax, scan, simphony, spectral, tau
 from .core import parse_bands
 
 
@@ -65,6 +65,7 @@ MENU = [
         (tau, "pt tau --fc3 fc3.hdf5 --isotope", "phono3py 포논 수명 τ(ω,T)"),
         (pprime, "pt pprime --tau-file tau_parent.npz", "모드별 수명을 넣은 P′ = Σ τ_nk P_nk"),
         (kappa, "pt kappa --P nphe.npz --tau 5", "열홀 κ_H·ΔT⊥ (기본 NPHE, --linear 면 자기장 κ_xy)"),
+        (plot, "pt plot --nlhall  /  pt plot --pprime --temp 300", "nlhall·pprime 결과 npz → png (파일 이름 없으면 최근 것)"),
     ]),
 ]
 MODS = [m for _, items in MENU for m, _, _ in items]
@@ -151,7 +152,9 @@ def main(argv=None):
         p.error(f"--loto T: {born} 없음")
     if a.loto == "F" and hasattr(a, "no_nac"):
         a.no_nac = True  # 본체 사본 (nphe_vec, spec_vec, aphe) 이 보는 플래그
-    if a.dim is None:
+    if a.cmd == "plot":  # 그림은 npz 만 읽음 — 슈퍼셀 불필요
+        pass
+    elif a.dim is None:
         from .core import guess_dim
 
         a.dim, why = guess_dim(a)

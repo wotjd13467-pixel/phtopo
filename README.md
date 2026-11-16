@@ -216,6 +216,6 @@ These happened in real runs. Match the symptom, then do exactly the "do this" co
 ## 6. Other commands (short)
 
 `pt hr` (tight-binding Hamiltonian, needs BORN) · `pt nodes --band N` (nodes on one plane only, fast) ·
-`pt simphony --band N` (inputs for the Simphony code) · phonon Hall: `pt nlhall`, `pt spectral`, `pt tau`, `pt pprime`, `pt kappa`.
+`pt simphony --band N` (inputs for the Simphony code) · phonon Hall: `pt nlhall`, `pt spectral`, `pt tau`, `pt pprime`, `pt kappa`. Figures from saved results (no computation): `pt plot --nlhall [npz]`, `pt plot --pprime [npz] --temp 80` (no file name = newest `nphe_*.npz` / `pprime*.npz` in `--dir`); `--comp xz zx` keeps only those components, `--csv` writes `<name>.csv` (vs T) and for pprime `<name>_spec<T>K.csv` (vs ν) instead of a png.
 Common options for all: `--dir`, `--d`, `-c`, `--fs`, `--fc`, `--born`, `--loto T|F`, `--band`.
 Full Korean manual and verification log: `../PHTOPO.md`.
