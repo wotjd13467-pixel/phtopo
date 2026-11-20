@@ -39,7 +39,7 @@ def rta(a, mesh, TS):
     phon = load(a)  # fc2 + BORN (NAC), 슈퍼셀 --d
     d3 = dim_arg(" ".join(a.fc3_dim)) if a.fc3_dim else a.dim
     ph = phono3py.Phono3py(phon.unitcell, supercell_matrix=d3, phonon_supercell_matrix=a.dim,
-                           primitive_matrix=phon.primitive_matrix, log_level=0)
+                           primitive_matrix=phon.primitive_matrix, cutoff_frequency=1e-2, log_level=0)  # CLI 기본 1e-2 (API 기본 1e-4 는 Γ 근처 ~0 모드를 넣어 κ 음수까지 나옴)
     ph.fc2 = phon.force_constants
     ph.nac_params = phon.nac_params
     ph.fc3 = read_fc3_from_hdf5(a.fc3)

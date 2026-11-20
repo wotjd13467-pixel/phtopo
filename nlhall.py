@@ -18,6 +18,8 @@ NAME, HELP = "nlhall", "비선형 포논 홀 P_ab(T) (NPHE) → nphe_*.npz"
 
 
 def t_arg(s):
+    if ":" not in s:  # -T 300 = 한 온도
+        return np.array([float(s)])
     lo, hi, dt = (float(x) for x in s.split(":"))
     return np.arange(lo, hi + 1e-9, dt)
 

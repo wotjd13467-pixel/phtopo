@@ -23,7 +23,7 @@ import sys
 
 import numpy as np
 
-from . import band, berry, box, chi, fc2, fc34, hr, kappa, line, nlhall, nodes, plot, pprime, relax, scan, simphony, spectral, tau
+from . import band, berry, box, chi, fc2, fc34, hr, kappa, kl, line, nlhall, nodes, plot, pprime, relax, scan, simphony, spectral, tau
 from .core import parse_bands
 
 
@@ -63,6 +63,7 @@ MENU = [
         (fc34, "pt 3rd --model mace", "3차 힘상수 (FC3) — phono3py + MLIP (τ/κ/NPHE 입력)"),
         (fc2, "pt 2nd --model mace", "2차 힘상수 (FC2) — phonopy + MLIP (조화 포논 분산 입력)"),
         (tau, "pt tau --fc3 fc3.hdf5 --isotope", "phono3py 포논 수명 τ(ω,T)"),
+        (kl, "pt kl  (폴더에 fc2.hdf5·fc3.hdf5 또는 FORCE_SETS·fc3.hdf5)", "격자 열전도도 κ_L(T) — phono3py RTA (동위원소 기본, 끄기 --isotope F)"),
         (pprime, "pt pprime --tau-file tau_parent.npz", "모드별 수명을 넣은 P′ = Σ τ_nk P_nk"),
         (kappa, "pt kappa --P nphe.npz --tau 5", "열홀 κ_H·ΔT⊥ (기본 NPHE, --linear 면 자기장 κ_xy)"),
         (plot, "pt plot --nlhall  /  pt plot --pprime --temp 300", "nlhall·pprime 결과 npz → png (파일 이름 없으면 최근 것)"),
@@ -144,6 +145,9 @@ def main(argv=None):
         p.error(f"--dir: 폴더 {a.dir!r} 없음 (kappa 의 ∇T 방향은 --direction)")
     a.cell, a.fs = os.path.join(a.dir, a.cell), os.path.join(a.dir, a.fs)
     a.fc = a.fc and os.path.join(a.dir, a.fc)
+    if not a.fc and not os.path.exists(a.fs) and os.path.exists(os.path.join(a.dir, "fc2.hdf5")):  # FORCE_SETS 없고 fc2.hdf5 만 있는 폴더
+        a.fc = os.path.join(a.dir, "fc2.hdf5")
+        print(f"[{a.fs} 없음 → {a.fc} 사용]", file=sys.stderr)
     born = os.path.join(a.dir, a.born or "BORN")
     if a.born and not os.path.exists(born):
         p.error(f"--born: {born} 없음")
