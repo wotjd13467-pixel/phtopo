@@ -1,4 +1,4 @@
-# phtopo (command: `pt`)
+# PhoTopo (command: `pt`, Python package `phtopo`)
 
 Phonon topology from phonopy data: phonon dispersion, Weyl nodes with chirality χ,
 nodal lines, Berry curvature, plus phonon Hall tools. One command `pt` with subcommands, like phonopy.
@@ -216,7 +216,7 @@ These happened in real runs. Match the symptom, then do exactly the "do this" co
 ## 6. Other commands (short)
 
 `pt hr` (tight-binding Hamiltonian, needs BORN) · `pt nodes --band N` (nodes on one plane only, fast) ·
-`pt simphony --band N` (inputs for the Simphony code) · phonon Hall: `pt nlhall`, `pt spectral`, `pt tau`, `pt pprime`, `pt kappa` (thermal Hall). Lattice thermal conductivity: `pt kl` (phono3py RTA; fc2 from FORCE_SETS or `fc2.hdf5`, fc3 from `fc3.hdf5` in `--dir`; isotope scattering ON by default, `--isotope F` turns it off; writes `kl.csv`). Figures from saved results (no computation): `pt plot --nlhall [npz]`, `pt plot --pprime [npz] --temp 80` (no file name = newest `nphe_*.npz` / `pprime*.npz` in `--dir`); `--comp xz zx` keeps only those components, `--csv` writes `<name>.csv` (vs T) and for pprime `<name>_spec<T>K.csv` (vs ν) instead of a png.
+`pt simphony --band N` (inputs for the Simphony code) · phonon Hall: `pt nlhall`, `pt spectral`, `pt tau`, `pt pprime`, `pt kappa` (thermal Hall). Lattice thermal conductivity: `pt kl` (phono3py RTA; fc2 from FORCE_SETS or `fc2.hdf5`, fc3 from `fc3.hdf5` in `--dir`; isotope scattering ON by default, `--isotope F` turns it off; writes `kl.csv`). Figures from saved results (no computation): `pt plot --nlhall [npz]`, `pt plot --pprime [npz] --temp 80` (no file name = newest `nphe_*.npz` / `pprime*.npz` in `--dir`); `--comp xz zx` keeps only those components, `--csv` writes `<name>.csv` (vs T) and for pprime `<name>_spec<T>K.csv` (vs ν) instead of a png. With two or more η > 0 in the npz, the png and csv also get the η→0 linear extrapolation (`*_eta0fit` columns; the η = 0 run is not used); with three or more, `pt plot` warns when the smallest η is more than 10 % off the trend of the two larger ones (then raise `--nq`).
 **η (Kubo denominator regulariser, THz; `--eta 0` = bare, no regulariser).**
 Defaults: `pt nlhall` / `pt spectral` compute η = 0, 0.08, 0.04 in one run; `pt pprime` 0.08 (`--eta 0` allowed);
 `pt kappa` (NPHE) picks η from the npz, default 0.08; `pt kappa --linear` (magnetic-field κ_xy(B)) default **0**, i.e. already bare.

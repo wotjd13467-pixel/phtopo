@@ -1,4 +1,4 @@
-"""pt — phonopy 결과로 포논 토폴로지 계산 (파이썬 패키지 이름은 phtopo).
+"""PhoTopo (명령 pt) — phonopy 결과로 포논 토폴로지 계산 (파이썬 패키지 이름은 phtopo).
 
 POSCAR, FORCE_SETS, BORN 이 있는 폴더에서:
   pt band                                포논 분산 (seekpath 자동 경로) → band.dat, band.png
